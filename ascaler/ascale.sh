@@ -4,6 +4,7 @@ LOOP=${LOOP:='yes'}
 CPU_UPPER_LIMIT=${CPU_UPPER_LIMIT:=85}
 CPU_LOWER_LIMIT=${CPU_LOWER_LIMIT:=25}
 PROMETHEUS_URL=${PROMETHEUS_URL:=http://apps6.local:9090}
+
 ##wait time WITH units 3600s 60m 1h 
 WAIT_TIME=${WAIT_TIME:=60s}
 
@@ -41,6 +42,8 @@ scale() {
   docker service scale $1=$2 >>/dev/null
   echo "INFO:  $1 scaled to $2 replicas"
 } 
+
+
 
 
 check () {

@@ -1,0 +1,11 @@
+FROM docker:29-cli
+
+LABEL maintainer="koenigphil@gmail.com"
+
+RUN apk update && apk add bash curl jq
+
+WORKDIR /app
+COPY ascale.sh ascale.sh
+RUN chmod a+x ascale.sh
+
+CMD ["/bin/bash","ascale.sh"]

@@ -7,15 +7,13 @@ include $(dck)
 export $(shell sed 's/=.*//' $(dck))
 
 # import deploy config
-dpl ?= deploy.env
+dpl ?= ./deploy.env
 include $(dpl)
 export $(shell sed 's/=.*//' $(dpl))
 
 # get the version from the date/time
-# VERSION=$(shell date '+%Y%m%d%H%M%S')
-VERSION=$(shell date '+%Y%m%d%H%M')
-
-
+# BVERSION=${VERSION:-$(shell date '+%Y%m%d%H%M')}
+BVERSION=${VERSION}
 # HELP
 # This will output the help for each task
 # thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -28,16 +26,16 @@ help: ## This help.
 
 
 # DOCKER TASKS
-# Build the containermake build
+# Build the container
 build: ## Build the container
-	docker build --rm --force-rm  -t $(APP_NAME) .
+	docker build --rm --force-rm --build-arg build_arg="$(BVERSION)" -t $(DST_IMG):${BVERSION} -f Dockerfile.${BVERSION} .
 
 build-nc: ## Build the container without caching
-	docker build --no-cache --rm --force-rm  -t $(APP_NAME) .
+	docker build --no-cache --rm --force-rm --build-arg build_arg="$(BVERSION)" -t $(DST_IMG):${BVERSION} -f Dockerfile.${BVERSION} .
 
 # Run the container 
 run: ## Run container on port configured in `deploy.env`
-	docker run -i -t --rm -p=$(APP_PORT):$(APP_PORT) --name="$(APP_NAME)" $(APP_NAME)
+	docker run -i -t --rm ${RUN_ARG} --name "$(APP_NAME)" $(DST_IMG):${BVERSION}
 
 
 up: build run ## Run container on port configured in `deploy.env` (Alias to run)
@@ -45,36 +43,29 @@ up: build run ## Run container on port configured in `deploy.env` (Alias to run)
 stop: ## Stop and remove a running container
 	docker stop $(APP_NAME); docker rm $(APP_NAME)
 
-release: build-nc publish ## Make a release by building and publishing the `{version}` ans `latest` tagged containers to ECR
+release: build-nc publish-version ## Make a release by building and publishing the `{version}` ans `latest` tagged containers to ECR
 
 # Docker publish
-publish: repo-login publish-latest publish-version ## Publish the `{version}` ans `latest` tagged containers to ECR
+publish-version: repo-login ## Publish the `{version}` taged container to ECR
+	@echo 'publish $(BVERSION) to $(DREPO)'
+	docker push $(DST_IMG):$(BVERSION)
 
-publish-latest: tag-latest ## Publish the `latest` taged container to ECR
+
+publish-latest: tag-latest repo-login
 	@echo 'publish latest to $(DREPO)'
-	docker push $(DREPO)/$(APP_NAME):latest
+	docker push $(DST_IMG):latest
 
-publish-version: tag-version ## Publish the `{version}` taged container to ECR
-	@echo 'publish $(VERSION) to $(DREPO)'
-	docker push $(DREPO)/$(APP_NAME):$(VERSION)
 
 # Docker tagging
-tag: tag-latest tag-version ## Generate container tags for the `{version}` ans `latest` tags
 
 tag-latest: ## Generate container `{version}` tag
 	@echo 'create tag latest'
-	docker tag $(APP_NAME) $(DREPO)/$(APP_NAME):latest
-
-tag-version: ## Generate container `latest` tag
-	@echo 'create tag $(VERSION)'
-	docker tag $(APP_NAME) $(DREPO)/$(APP_NAME):$(VERSION)
-
-
+	docker tag $(DST_IMG):${BVERSION} $(DST_IMG):latest
 
 # login to docker hub
 repo-login: 
 	cat $(dckpw)| docker login -u $(DUSER) --password-stdin
 
 version: ## Output the current version
-	@echo $(VERSION)
+	@echo $(BVERSION)
 	

@@ -1,6 +1,6 @@
 # ascaler
 
-## Current Release: 1.0.0
+## Current Release: 1.1.0
 
 This project is a complete rewriting of the https://github.com/jcwimer/docker-swarm-autoscaler
 
@@ -43,3 +43,10 @@ deploy:
 You can deploy a test app with the following commands below. Helloworld is initially only 1 replica. The autoscaler will scale to the minimum 3 replicas.
 1. `docker stack deploy -c swarm-ascaler-stack.yml ascaler`
 2. `docker stack deploy -c helloworld.yml hello`
+
+## Changelog
+### 1.1.0
+- Added docker 29 compatibility (Api problem)
+
+### 1.0.0
+- Initial Release
