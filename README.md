@@ -1,52 +1,99 @@
 # ascaler
 
-## Current Release: 1.1.0
+Autoscaler simples para **Docker Swarm**, escrito em Bash. Ele acompanha a CPU dos serviços pelo Prometheus e ajusta o número de réplicas de forma proporcional à carga.
 
-This project is a complete rewriting of the https://github.com/jcwimer/docker-swarm-autoscaler
+> Fork de [UnclePhil/ascaler](https://github.com/UnclePhil/ascaler), que por sua vez é uma reescrita de [jcwimer/docker-swarm-autoscaler](https://github.com/jcwimer/docker-swarm-autoscaler). O crédito pela base do projeto é dos autores originais.
 
-Due to the intensive usage of _docker service inspect_ command.
+## O que muda neste fork
 
-On my cluster(s) the old project was a high cpu user (>15%) and i need to reduce that drastically.
+- **Comparações corrigidas:** o original comparava números como texto, então `3 > 10` era verdadeiro e um serviço ocioso subia ao máximo.
+- **Escala proporcional:** calcula as réplicas necessárias, em vez de somar uma por vez.
+- **CPU por limite:** usa a porcentagem do limite de cada réplica, em vez da soma de todas.
+- **Janelas separadas:** subida rápida e descida lenta.
+- **Logs de decisão:** a linha `METRIC` mostra o que foi lido em cada rodada.
+- **Simulação pronta:** um ambiente completo com poucos comandos.
 
+## Componentes
 
-## Usage
-1. You can deploy prometheus, cadvisor, and ascaler by running `docker stack deploy -c swarm-ascaler-stack.yml ascaler` from the root of this repo.  
-  * ascaler needs a placement contstraint to deploy to a manager. 
-2. For services you want to autoscale you will need a deploy label `ascaler=true`. 
+| Container | Papel |
+|---|---|
+| **ascaler** | Decide quantas réplicas cada serviço deve ter e manda o Swarm escalar |
+| **Prometheus** | Guarda as métricas |
+| **cAdvisor** | Mede a CPU dos containers, com um por nó do cluster |
 
+```text
+containers do app ──> cAdvisor ──> Prometheus
+                                       │
+                                       v
+Docker Swarm  <──── escala ──────── ascaler
 ```
-deploy:
-  labels:
-    - "ascaler=true"
+
+Detalhes em [docs/arquitetura.md](docs/arquitetura.md).
+
+## Início rápido
+
+Requer Docker com Swarm, em um nó manager.
+
+```bash
+git clone https://github.com/diegoaugusto-santana/ascaler.git
+cd ascaler
+docker swarm init
+docker build -t ascaler:local -f ascaler/Dockerfile.1.2.0 ascaler
+docker stack deploy --detach=true -c stack/ascaler.yml ascaler
 ```
 
-This is best paired with resource constraints limits. This is also under the deploy key.
+Depois, adicione os labels ao seu serviço:
 
-```
+```yaml
 deploy:
   resources:
-    reservations:
-      cpus: '0.25'
-      memory: 512M
     limits:
       cpus: '0.50'
+  labels:
+    ascaler: 'true'
+    ascaler.minimum: '3'
+    ascaler.maximum: '20'
 ```
 
-## Configuration
-| Setting | Value | Description |
-| --- | --- | --- |
-| `ascaler` | `true` | Required. This enables autoscaling for a service. Anything other than `true` will not enable it |
-| `ascaler.minimum` | Integer | Optional. This is the minimum number of replicas wanted for a service. The autoscaler will not downscale below this number |
-| `ascaler.maximum` | Integer | Optional. This is the maximum number of replicas wanted for a service. The autoscaler will not scale up past this number | 
+Passo a passo em [docs/uso.md](docs/uso.md).
 
-## Test
-You can deploy a test app with the following commands below. Helloworld is initially only 1 replica. The autoscaler will scale to the minimum 3 replicas.
-1. `docker stack deploy -c swarm-ascaler-stack.yml ascaler`
-2. `docker stack deploy -c helloworld.yml hello`
+## Simular um pico
+
+```bash
+./simulation/up.sh     # sobe tudo
+./simulation/logs.sh   # em outro terminal: acompanha as decisões
+./simulation/load.sh   # gera a carga com k6
+./simulation/down.sh   # remove tudo
+```
+
+Resultados e leitura em [docs/simulacao.md](docs/simulacao.md).
+
+## Documentação
+
+| Documento | Conteúdo |
+|---|---|
+| [Arquitetura](docs/arquitetura.md) | Como as peças se conectam e como a decisão é tomada |
+| [Configuração](docs/configuracao.md) | Variáveis, labels e ajustes de sensibilidade |
+| [Uso](docs/uso.md) | Como instalar e aplicar nos seus serviços |
+| [Simulação](docs/simulacao.md) | Como testar, do zero, com os resultados esperados |
+| [Problemas comuns](docs/problemas.md) | Sintomas, causas e soluções encontrados em testes |
 
 ## Changelog
+
+### 1.2.0
+
+- Corrige comparações numéricas, o valor `null` e o uso de réplicas desatualizadas.
+- Adiciona escala proporcional, janelas separadas e logs de decisão.
+- Adiciona a simulação e a documentação.
+
 ### 1.1.0
-- Added docker 29 compatibility (Api problem)
+
+- Compatibilidade com Docker 29.
 
 ### 1.0.0
-- Initial Release
+
+- Versão inicial.
+
+## Licença
+
+MIT, como no projeto original. Veja [LICENSE](LICENSE).

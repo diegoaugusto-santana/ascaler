@@ -9,14 +9,18 @@ configs:
 
 services:
   ascaler:
-    image: unclephil/ascaler:1.1.0
+    image: ascaler:local
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - PROMETHEUS_URL=http://prometheus:9090
-      - CPU_UPPER_LIMIT=85
+      - CPU_UPPER_LIMIT=70
       - CPU_LOWER_LIMIT=25
-      - WAIT_TIME=60s 
+      - WAIT_TIME=10s
+      - CPU_TARGET=60
+      - CPU_WINDOW_UP=15s
+      - CPU_WINDOW_DOWN=2m
+      - MAX_DOWN_STEP=2
     networks:
       - ascaler
     deploy:
@@ -33,7 +37,7 @@ services:
           cpus: '0.10'
           memory: 64M
   cadvisor:
-    image: grc.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:latest
     networks:
       - ascaler
     volumes:
@@ -47,10 +51,10 @@ services:
       mode: global
       resources:
         limits:
-          cpus: '0.10'
+          cpus: '0.50'
           memory: 128M
         reservations:
-          cpus: '0.10'
+          cpus: '0.50'
           memory: 64M
 
   prometheus:

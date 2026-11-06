@@ -1,0 +1,23 @@
+version: '3.8'
+configs:
+  demo_app:
+    file: ./app.py
+services:
+  web:
+    image: python:3.13-alpine
+    command: ["python", "/app.py"]
+    configs:
+      - source: demo_app
+        target: /app.py
+    ports:
+      - 8080:80
+    logging:
+      driver: json-file
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+      labels:
+        ascaler: 'true'
+        ascaler.minimum: '3'
+        ascaler.maximum: '20'
