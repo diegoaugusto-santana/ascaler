@@ -1,38 +1,40 @@
 # ascaler
 
-Autoscaler simples para **Docker Swarm**, escrito em Bash. Ele acompanha a CPU dos serviços pelo Prometheus e ajusta o número de réplicas de forma proporcional à carga.
+**Languages:** English | [Português](README.pt-BR.md) | [Español](README.es.md)
 
-> Fork de [UnclePhil/ascaler](https://github.com/UnclePhil/ascaler), que por sua vez é uma reescrita de [jcwimer/docker-swarm-autoscaler](https://github.com/jcwimer/docker-swarm-autoscaler). O crédito pela base do projeto é dos autores originais.
+A simple autoscaler for **Docker Swarm**, written in Bash. It watches service CPU through Prometheus and adjusts the number of replicas in proportion to the load.
 
-## O que muda neste fork
+> Fork of [UnclePhil/ascaler](https://github.com/UnclePhil/ascaler), which is itself a rewrite of [jcwimer/docker-swarm-autoscaler](https://github.com/jcwimer/docker-swarm-autoscaler). Credit for the base of the project goes to the original authors.
 
-- **Comparações corrigidas:** o original comparava números como texto, então `3 > 10` era verdadeiro e um serviço ocioso subia ao máximo.
-- **Escala proporcional:** calcula as réplicas necessárias, em vez de somar uma por vez.
-- **CPU por limite:** usa a porcentagem do limite de cada réplica, em vez da soma de todas.
-- **Janelas separadas:** subida rápida e descida lenta.
-- **Logs de decisão:** a linha `METRIC` mostra o que foi lido em cada rodada.
-- **Simulação pronta:** um ambiente completo com poucos comandos.
+## What this fork changes
 
-## Componentes
+- **Fixed comparisons:** the original compared numbers as text, so `3 > 10` was true and an idle service scaled up to the maximum.
+- **Proportional scaling:** calculates the replicas needed, instead of adding one at a time.
+- **CPU per limit:** uses the percentage of each replica's limit, instead of the sum across replicas.
+- **Separate windows:** fast scale-up and slow scale-down.
+- **Decision logs:** the `METRIC` line shows what was read in each round.
+- **Ready-made simulation:** a complete environment in a few commands.
 
-| Container | Papel |
+## Components
+
+| Container | Role |
 |---|---|
-| **ascaler** | Decide quantas réplicas cada serviço deve ter e manda o Swarm escalar |
-| **Prometheus** | Guarda as métricas |
-| **cAdvisor** | Mede a CPU dos containers, com um por nó do cluster |
+| **ascaler** | Decides how many replicas each service should have and tells Swarm to scale |
+| **Prometheus** | Stores the metrics |
+| **cAdvisor** | Measures container CPU, with one instance per cluster node |
 
 ```text
-containers do app ──> cAdvisor ──> Prometheus
-                                       │
-                                       v
-Docker Swarm  <──── escala ──────── ascaler
+app containers ──> cAdvisor ──> Prometheus
+                                    │
+                                    v
+Docker Swarm  <──── scales ───── ascaler
 ```
 
-Detalhes em [docs/arquitetura.md](docs/arquitetura.md).
+Details in [docs/architecture.md](docs/architecture.md).
 
-## Início rápido
+## Quick start
 
-Requer Docker com Swarm, em um nó manager.
+Requires Docker with Swarm, on a manager node.
 
 ```bash
 git clone https://github.com/diegoaugusto-santana/ascaler.git
@@ -42,7 +44,7 @@ docker build -t ascaler:local -f ascaler/Dockerfile.1.2.0 ascaler
 docker stack deploy --detach=true -c stack/ascaler.yml ascaler
 ```
 
-Depois, adicione os labels ao seu serviço:
+Then add the labels to your service:
 
 ```yaml
 deploy:
@@ -55,45 +57,45 @@ deploy:
     ascaler.maximum: '20'
 ```
 
-Passo a passo em [docs/uso.md](docs/uso.md).
+Step by step in [docs/usage.md](docs/usage.md).
 
-## Simular um pico
+## Simulate a peak
 
 ```bash
-./simulation/up.sh     # sobe tudo
-./simulation/logs.sh   # em outro terminal: acompanha as decisões
-./simulation/load.sh   # gera a carga com k6
-./simulation/down.sh   # remove tudo
+./simulation/up.sh     # starts everything
+./simulation/logs.sh   # in another terminal: follows the decisions
+./simulation/load.sh   # generates load with k6
+./simulation/down.sh   # removes everything
 ```
 
-Resultados e leitura em [docs/simulacao.md](docs/simulacao.md).
+Results and how to read them in [docs/simulation.md](docs/simulation.md).
 
-## Documentação
+## Documentation
 
-| Documento | Conteúdo |
+| Document | Contents |
 |---|---|
-| [Arquitetura](docs/arquitetura.md) | Como as peças se conectam e como a decisão é tomada |
-| [Configuração](docs/configuracao.md) | Variáveis, labels e ajustes de sensibilidade |
-| [Uso](docs/uso.md) | Como instalar e aplicar nos seus serviços |
-| [Simulação](docs/simulacao.md) | Como testar, do zero, com os resultados esperados |
-| [Problemas comuns](docs/problemas.md) | Sintomas, causas e soluções encontrados em testes |
+| [Architecture](docs/architecture.md) | How the pieces connect and how decisions are made |
+| [Configuration](docs/configuration.md) | Variables, labels and sensitivity settings |
+| [Usage](docs/usage.md) | How to install it and apply it to your services |
+| [Simulation](docs/simulation.md) | How to test from scratch, with expected results |
+| [Troubleshooting](docs/troubleshooting.md) | Symptoms, causes and fixes found during testing |
 
 ## Changelog
 
 ### 1.2.0
 
-- Corrige comparações numéricas, o valor `null` e o uso de réplicas desatualizadas.
-- Adiciona escala proporcional, janelas separadas e logs de decisão.
-- Adiciona a simulação e a documentação.
+- Fixes numeric comparisons, the `null` value and the use of stale replica counts.
+- Adds proportional scaling, separate windows and decision logs.
+- Adds the simulation and the documentation.
 
 ### 1.1.0
 
-- Compatibilidade com Docker 29.
+- Docker 29 compatibility.
 
 ### 1.0.0
 
-- Versão inicial.
+- Initial release.
 
-## Licença
+## License
 
-MIT, como no projeto original. Veja [LICENSE](LICENSE).
+MIT, as in the original project. See [LICENSE](LICENSE).

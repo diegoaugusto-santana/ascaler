@@ -1,6 +1,6 @@
 import http from 'k6/http';
 
-// Sobe ate 100 requisicoes por segundo, sustenta e desce.
+// Ramps up to 100 requests per second, holds, then ramps down.
 export const options = {
   scenarios: {
     pico: {

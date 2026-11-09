@@ -1,5 +1,7 @@
 # Arquitetura
 
+**Idiomas:** [English](../architecture.md) | Português | [Español](../es/architecture.md)
+
 O ascaler é um **serviço central**, não um sidecar. O seu app não muda: basta receber labels. Um único ascaler atende todos os serviços marcados.
 
 ## Containers

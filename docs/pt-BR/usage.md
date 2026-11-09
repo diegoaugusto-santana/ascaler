@@ -1,5 +1,7 @@
 # Uso
 
+**Idiomas:** [English](../usage.md) | Português | [Español](../es/usage.md)
+
 ## Requisitos
 
 - Docker com Swarm ativo.
@@ -98,4 +100,4 @@ docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}"
 - Comece com um `ascaler.maximum` conservador e observe.
 - Confira os labels de mínimo e máximo em todo serviço marcado.
 - O ascaler não protege contra ataques. Use WAF ou CDN e limite de requisições na entrada.
-- O Swarm balanceia por conexão. Para dividir por requisição, coloque um proxy reverso na frente. Veja [Problemas comuns](problemas.md).
+- O Swarm balanceia por conexão. Para dividir por requisição, coloque um proxy reverso na frente. Veja [Problemas comuns](troubleshooting.md).

@@ -1,5 +1,7 @@
 # Problemas comuns
 
+**Idiomas:** [English](../troubleshooting.md) | Português | [Español](../es/troubleshooting.md)
+
 ## O serviço não aplicou o novo máximo
 
 Editar o YAML não altera o serviço em execução. Rode `docker stack deploy` e confira:

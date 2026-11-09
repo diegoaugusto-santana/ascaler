@@ -1,5 +1,7 @@
 # Simulação
 
+**Idiomas:** [English](../simulation.md) | Português | [Español](../es/simulation.md)
+
 Sobe um Swarm de um nó com o ascaler e um app que consome CPU por requisição.
 
 ## O que sobe

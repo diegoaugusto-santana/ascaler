@@ -1,5 +1,7 @@
 # Configuração
 
+**Idiomas:** [English](../configuration.md) | Português | [Español](../es/configuration.md)
+
 ## Labels do serviço
 
 Ficam em `deploy.labels` e valem depois de um `docker stack deploy`.

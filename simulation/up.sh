@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sobe o ambiente completo de simulacao em um Swarm de um no.
+# Starts the full simulation environment on a single-node Swarm.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -9,25 +9,25 @@ if [ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]; then
   else
     docker swarm init >/dev/null
   fi
-  echo "Swarm iniciado."
+  echo "Swarm initialized."
 fi
 
 docker build -q -t ascaler:local -f ascaler/Dockerfile.1.2.0 ascaler >/dev/null
-echo "Imagem ascaler:local criada."
+echo "Image ascaler:local built."
 
 docker stack deploy --detach=true -c stack/ascaler.yml ascaler >/dev/null 2>&1
 docker stack deploy --detach=true -c simulation/app.yml demo >/dev/null 2>&1
 
-echo "Aguardando o app chegar a 3 replicas (pode levar 2 minutos na primeira vez)..."
+echo "Waiting for the app to reach 3 replicas (may take 2 minutes the first time)..."
 for _ in $(seq 1 60); do
   if [ "$(docker service ls --filter name=demo_web --format '{{.Replicas}}')" = "3/3" ]; then
     docker service ls --format 'table {{.Name}}\t{{.Replicas}}\t{{.Image}}'
-    echo "Pronto. Rode: ./simulation/load.sh"
+    echo "Ready. Run: ./simulation/load.sh"
     exit 0
   fi
   sleep 5
 done
 
-echo "O app nao chegou a 3/3. Veja docs/simulacao.md." >&2
+echo "The app did not reach 3/3. See docs/simulation.md." >&2
 docker service ls --format 'table {{.Name}}\t{{.Replicas}}\t{{.Image}}' >&2
 exit 1
